@@ -8,6 +8,9 @@
 # (network API expects byte[] as input).
 
 from serialization import jsonpickle
+from petrelic.multiplicative.pairing import G1, G2, GT
+from petrelic.bn import Bn
+import hashlib
 
 
 class PSSignature(object):
@@ -19,15 +22,29 @@ class PSSignature(object):
     and its simplicity in comparison with the ABC scheme allows you to realize
     misunderstandings/problems early on.
     """
+    @classmethod
+    def generate_key(cls):
+        gen = G2.generator()
+        p = G1.order()
+        sk = [G1.order().random(),G1.order().random()]
+        pk = [gen] + [gen ** i for i in sk]
+        return sk, pk
 
-    def generate_key():
-        pass
-
-    def sign(sk, messages):
-        pass
-
-    def verify(pk, signature):
-        pass
+    @classmethod
+    def sign(cls, sk, messages):
+        m = Bn.from_binary(hashlib.sha256(messages).digest())
+        h = G1.generator() ** G1.order().random()   
+        while h == G1.neutral_element():
+            h = G1.generator() ** G1.order().random()
+        sig = [h, h ** (sk[0] + sk[1] * m)]
+        return sig
+        
+    @classmethod
+    def verify(cls, pk, messages, signature):
+        m = Bn.from_binary(hashlib.sha256(messages).digest())
+        is_gen = signature[0] == G1.neutral_element()
+        is_valid = signature[0].pair(pk[1] * pk[2] ** m) == signature[1].pair(pk[0])
+        return is_valid and not is_gen
 
 
 class Issuer(object):
