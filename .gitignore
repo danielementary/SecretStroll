@@ -7,3 +7,5 @@ skeleton/tor/
 
 *.pub
 skeleton/.vscode/
+
+*.cred

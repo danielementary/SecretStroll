@@ -4,7 +4,7 @@ Classes that you need to complete.
 
 # Optional import
 from serialization import jsonpickle
-import json
+from credential import *
 from petrelic.multiplicative.pairing import G1, G2, GT
 from petrelic.bn import Bn
 
@@ -31,13 +31,16 @@ class Server:
             You are free to design this as you see fit, but all commuincations
             needs to be encoded as byte arrays.
         """
-        attr_list = jsonpickle.decode(valid_attributes)
+        attr_list = valid_attributes.split(',')
         nb_attributes = len(attr_list)
 
+        gen_g1 = G1.generator()
         gen_g2 = G2.generator()
-        sk = [G1.order().random() for _ in range(nb_attributes)]
-        pk = [gen_g2] + [gen_g2 ** i for i in sk]
-        
+        exp = [G1.order().random() for _ in range(nb_attributes + 1)]
+
+        pk = [gen_g1] + [gen_g1 ** i for i in exp[1:]] + [gen_g2] + [gen_g2 ** i for i in exp]
+        sk = gen_g1 ** exp[0]
+
         return (jsonpickle.encode(pk).encode(), jsonpickle.encode(sk).encode())
 
 
@@ -56,7 +59,9 @@ class Server:
             response (bytes[]): the client should be able to build a credential
             with this response.
         """
-        raise NotImplementedError
+        jsonpickle.decode(issuance_request)
+        response = Issuer.issue(jsonpickle.decode(server_sk), jsonpickle.decode(issuance_request), username, attributes)
+        return jsonpickle.encode(response).encode()
 
     def check_request_signature(
         self, server_pk, message, revealed_attributes, signature
@@ -97,7 +102,11 @@ class Client:
                 from prepare_registration to proceed_registration_response.
                 You need to design the state yourself.
         """
-        raise NotImplementedError
+        pk = jsonpickle.decode(server_pk)
+        attributes = attributes.split(',')
+        request,t = AnonCredential.create_issue_request(pk, attributes)
+
+        return request.serialize(), t
 
     def proceed_registration_response(self, server_pk, server_response, private_state):
         """Process the response from the server.
@@ -111,7 +120,9 @@ class Client:
         Return:
             credential (byte []): create an attribute-based credential for the user
         """
-        raise NotImplementedError
+        credential = AnonCredential.receive_issue_response(jsonpickle.decode(server_response), private_state)
+
+        return jsonpickle.encode(credential).encode()
 
     def sign_request(self, server_pk, credential, message, revealed_info):
         """Signs the request with the clients credential.

@@ -49,7 +49,7 @@ class PSSignature(object):
 class Issuer(object):
     """Allows the server to issue credentials"""
 
-    def setup(self, valid_attributes):
+    def setup(self, secret_key, valid_attributes):
         """Decides the public parameters of the scheme and generates a key for
         the issuer.
 
@@ -81,8 +81,8 @@ class Issuer(object):
             byte[]: issuer's secret params and key
         """
         pass
-
-    def issue():
+    @staticmethod
+    def issue(sk, request, username, attributes):
         """Issues a credential for a new user. 
 
         This function should receive a issuance request from the user
@@ -91,21 +91,75 @@ class Issuer(object):
 
         You should design the issue_request as you see fit.
         """
-        pass
+        #Derive challenge
+        challenge = hashlib.sha256(jsonpickle.encode(request.C).encode())
+        challenge.update(jsonpickle.encode(request.commitment).encode())
+        challenge.update(jsonpickle.encode(request.server_pk).encode())
+        challenge = Bn.from_binary(challenge.digest())
+
+        challenge_valid = challenge == request.challenge
+
+        candidate = request.C ** request.challenge
+        for e in zip(request.server_pk, request.response):
+            candidate = candidate * e[0] ** e[1]
+        
+        proof_valid = request.commitment == candidate
+
+        print(len(request.response))
+
+        if proof_valid and challenge_valid:
+            u = G1.order().random()
+            sig = (request.server_pk[0] ** u,(sk * request.C) ** u)
+            return sig
+        else :
+            raise ValueError
 
 
 class AnonCredential(object):
     """An AnonCredential"""
 
-    def create_issue_request():
+    @staticmethod
+    def create_issue_request(server_pk, attributes):
         """Gets all known attributes (subscription) of a user and creates an issuance request.
         You are allowed to add extra attributes to the issuance.
 
         You should design the issue_request as you see fit.
         """
-        pass
+        attributes = [Bn.from_binary(hashlib.sha256(attr.encode()).digest()) for attr in attributes]
+        gen_g1 = server_pk[0]
+        t = G1.order().random()
 
-    def receive_issue_response():
+        #Gen C
+        C = gen_g1 ** t
+        for e in zip(server_pk[1:], attributes):
+            C = C * e[0] ** e[1]
+        
+        #Gen commitment
+        comm_values = [G1.order().random() for _ in range(len(attributes) + 1)]
+        comm = gen_g1 ** comm_values[0]
+        for e in zip(server_pk[1:], comm_values[1:]):
+            comm  = comm * e[0] ** e[1]
+        
+        #Gen challenge
+        challenge = hashlib.sha256(jsonpickle.encode(C).encode())
+        challenge.update(jsonpickle.encode(comm).encode())
+        challenge.update(jsonpickle.encode(server_pk).encode())
+        challenge = Bn.from_binary(challenge.digest())
+
+        #Generate response
+        response = [e[0].mod_sub(challenge * e[1],G1.order()) for e in zip(comm_values, [t] + attributes)]
+
+
+        candidate = C ** challenge
+        for e in zip(server_pk, response):
+            candidate = candidate * e[0] ** e[1]
+
+
+        return IssuanceRequest(C, comm, challenge, response, server_pk),t
+
+
+    @staticmethod
+    def receive_issue_response(response, t):
         """This function finishes the credential based on the response of issue.
 
         Hint: you need both secret values from the create_issue_request and response
@@ -113,7 +167,7 @@ class AnonCredential(object):
 
         You should design the issue_request as you see fit.
         """
-        pass
+        return (response[0], response[1] / (response[0] ** t))
 
     def sign(self, message, revealed_attr):
         """Signs the message.
@@ -163,3 +217,21 @@ class Signature(object):
             Signature
         """
         pass
+
+
+class IssuanceRequest(object):
+    """An Issuance Request"""
+    def __init__(self, C, commitment, challenge, response, server_pk):
+        self.C = C
+        self.commitment = commitment
+        self.challenge = challenge
+        self.response = response
+        self.server_pk = server_pk
+    
+    def serialize(self):
+        data = jsonpickle.encode(self)
+        return data.encode()
+
+    @staticmethod
+    def deserialize(data):
+        return jsonpickle.decode(data)
