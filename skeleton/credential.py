@@ -25,7 +25,6 @@ class PSSignature(object):
     @classmethod
     def generate_key(cls):
         gen = G2.generator()
-        p = G1.order()
         sk = [G1.order().random(),G1.order().random()]
         pk = [gen] + [gen ** i for i in sk]
         return sk, pk
@@ -58,6 +57,7 @@ class Issuer(object):
             valid_attributes (string): all valid attributes. The issuer
             will never be called with a value outside this list
         """
+        print("issuer_setup")
         pass
 
     def get_serialized_public_key(self):
