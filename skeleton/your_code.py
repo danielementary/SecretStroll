@@ -4,6 +4,9 @@ Classes that you need to complete.
 
 # Optional import
 from serialization import jsonpickle
+import json
+from petrelic.multiplicative.pairing import G1, G2, GT
+from petrelic.bn import Bn
 
 
 class Server:
@@ -28,7 +31,15 @@ class Server:
             You are free to design this as you see fit, but all commuincations
             needs to be encoded as byte arrays.
         """
-        raise NotImplementedError
+        attr_list = jsonpickle.decode(valid_attributes)
+        nb_attributes = len(attr_list)
+
+        gen_g2 = G2.generator()
+        sk = [G1.order().random() for _ in range(nb_attributes)]
+        pk = [gen_g2] + [gen_g2 ** i for i in sk]
+        
+        return (jsonpickle.encode(pk).encode(), jsonpickle.encode(sk).encode())
+
 
     def register(self, server_sk, issuance_request, username, attributes):
         """ Registers a new account on the server.
