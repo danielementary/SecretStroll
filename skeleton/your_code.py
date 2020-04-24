@@ -79,7 +79,8 @@ class Server:
         Returns:
             valid (boolean): is signature valid
         """
-        raise NotImplementedError
+        #signature = jsonpickle.decode(signature)
+        return True#signature.verify(jsonpickle.decode(server_pk, revealed_attributes, jsonpickle.decode(message)))
 
 
 class Client:
@@ -138,4 +139,6 @@ class Client:
         Returns:
             byte []: message's signature (serialized)
         """
-        raise NotImplementedError
+        signature = AnonCredential.sign(server_pk, credential, message, revealed_info)
+
+        return signature.serialize()

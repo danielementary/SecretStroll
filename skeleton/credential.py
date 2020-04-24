@@ -97,16 +97,18 @@ class Issuer(object):
         challenge.update(jsonpickle.encode(request.server_pk).encode())
         challenge = Bn.from_binary(challenge.digest())
 
+        #Compare the derived challenge to the received challenge
         challenge_valid = challenge == request.challenge
 
+        #Compute the zkp
         candidate = request.C ** request.challenge
         for e in zip(request.server_pk, request.response):
             candidate = candidate * e[0] ** e[1]
         
+
         proof_valid = request.commitment == candidate
 
-        print(len(request.response))
-
+        #If the proof and the derived challenge is valid, sig the credential
         if proof_valid and challenge_valid:
             u = G1.order().random()
             sig = (request.server_pk[0] ** u,(sk * request.C) ** u)
@@ -169,7 +171,8 @@ class AnonCredential(object):
         """
         return (response[0], response[1] / (response[0] ** t))
 
-    def sign(self, message, revealed_attr):
+    @staticmethod
+    def sign(server_pk, credential, message, revealed_attr):
         """Signs the message.
 
         Args:
@@ -179,7 +182,7 @@ class AnonCredential(object):
         Return:
             Signature: signature
         """
-        pass
+        return b'Hello'
 
 
 class Signature(object):
@@ -196,7 +199,7 @@ class Signature(object):
         returns:
             valid (boolean): is signature valid
         """
-        pass
+        return True
 
     def serialize(self):
         """Serialize the object to a byte array.
@@ -204,7 +207,8 @@ class Signature(object):
         Returns: 
             byte[]: a byte array 
         """
-        pass
+        data = jsonpickle.encode(self)
+        return data.encode()
 
     @staticmethod
     def deserialize(data):
@@ -216,7 +220,7 @@ class Signature(object):
         Returns:
             Signature
         """
-        pass
+        return jsonpickle.decode(data)
 
 
 class IssuanceRequest(object):
