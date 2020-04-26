@@ -12,7 +12,7 @@
 
 
 \title{CS-523 SecretStroll Report}
-\author{Author 1, Author 2}
+\author{Wicky Simon, Nunes Silva Daniel Filipe}
 \date{April 2020}
 
 \begin{document}
@@ -21,7 +21,6 @@
 
 \begin{abstract}
     Please report your design, implementation details, and findings of the second project in this report. \\
-    You can add references if necessary \cite{article}. \\
     THE REPORT SHOULD NOT EXCEED 5 PAGES.
 \end{abstract}
 
@@ -45,6 +44,8 @@ verification.
 \section{(De)Anonymization of User Trajectories}
 
 \subsection{Privacy Evaluation}
+We evaluate the privacy risks using simulated data of two hundred users who made use of the application hundred times each in average over twenty days. We assume that no mechanism to hide any kind of data is used, i.e. data is sent in cleartext inside standard IP packets. Any malicious adversary could hack the application servers or sniff the network between a user and the server in order to retrieve similar datasets which include IP addresses, locations, query types, timestamps and responses. According to \cite{dont}, the IP address or a set or IP addresses are relevant attributes because they can be linked to a given user since they are persistent for a certain duration. Moreover, combining IP addresses with location and time data makes sense since users often keep their habits that they may share with very few people \cite{on}, i.e. they may work during the day at their office, be back home in the evening and do an activity at some specific location. Therefore, we deduce that this implementation leak senstive informations about the users. As a proof of concept for breaching users privacy, we try to infer work and home locations of users as well as habits in their activities.
+
 Provide a privacy analysis of the dataset. You should explicitly state your assumptions, adversary
 models, methods, and findings.
 
