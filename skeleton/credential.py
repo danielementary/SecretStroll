@@ -49,38 +49,6 @@ class PSSignature(object):
 class Issuer(object):
     """Allows the server to issue credentials"""
 
-    def setup(self, secret_key, valid_attributes):
-        """Decides the public parameters of the scheme and generates a key for
-        the issuer.
-
-        Args:
-            valid_attributes (string): all valid attributes. The issuer
-            will never be called with a value outside this list
-        """
-        print("issuer_setup")
-        pass
-
-    def get_serialized_public_key(self):
-        """Returns the public parameters and the public key of the issuer.
-
-        Args:
-            No input
-
-        Returns:
-            byte[]: issuer's public params and key
-        """
-        pass
-
-    def get_serialized_secret_key(self):
-        """Returns the secret key of the issuer.
-
-        Args:
-            No input
-
-        Returns:
-            byte[]: issuer's secret params and key
-        """
-        pass
     @staticmethod
     def issue(sk, request, username, attributes):
         """Issues a credential for a new user. 
