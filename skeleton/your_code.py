@@ -82,8 +82,10 @@ class Server:
         Returns:
             valid (boolean): is signature valid
         """
-        #signature = jsonpickle.decode(signature)
-        return True#signature.verify(jsonpickle.decode(server_pk, revealed_attributes, jsonpickle.decode(message)))
+        signature = jsonpickle.decode(signature)
+        pk = jsonpickle.decode(server_pk)
+        public_attrs = revealed_attributes.split(',')
+        return signature.verify(pk, public_attrs, message)
 
 
 class Client:
@@ -110,7 +112,7 @@ class Client:
         attributes = attributes.split(',')
         request,t = AnonCredential.create_issue_request(pk, attributes)
 
-        return request.serialize(), t
+        return request.serialize(), (t,attributes)
 
     def proceed_registration_response(self, server_pk, server_response, private_state):
         """Process the response from the server.
@@ -124,8 +126,7 @@ class Client:
         Return:
             credential (byte []): create an attribute-based credential for the user
         """
-        credential = AnonCredential.receive_issue_response(jsonpickle.decode(server_response), private_state)
-
+        credential = AnonCredential.receive_issue_response(jsonpickle.decode(server_pk),jsonpickle.decode(server_response), private_state)
         return jsonpickle.encode(credential).encode()
 
     def sign_request(self, server_pk, credential, message, revealed_info):
@@ -142,6 +143,6 @@ class Client:
         Returns:
             byte []: message's signature (serialized)
         """
-        signature = AnonCredential.sign(server_pk, credential, message, revealed_info)
+        signature = jsonpickle.decode(credential).sign(message, revealed_info.split(','))
 
         return signature.serialize()
