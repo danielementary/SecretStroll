@@ -160,6 +160,13 @@ class AnonCredential(object):
 class Signature(object):
     """A Signature"""
 
+    def __init__(self, signature, commitment, challenge, response, attributes_idx):
+        self.signature = signature
+        self.commitment = commitment
+        self.challenge = challenge
+        self.response = response
+        self.attributes_idx = attributes_idx
+
     def verify(self, issuer_public_info, public_attrs, message):
         """Verifies a signature.
 
@@ -171,7 +178,45 @@ class Signature(object):
         returns:
             valid (boolean): is signature valid
         """
-        return True
+        #public_key separation
+        nb_attr_public_key = (len(issuer_public_info) - 3) // 2
+        gen_g1_pk = issuer_public_info[0]
+        public_key1 = issuer_public_info[1:nb_attr_public_key + 1]
+        gen_g2_pk = issuer_public_info[nb_attr_public_key + 1]
+        x_g2_pk = issuer_public_info[nb_attr_public_key + 2]
+        public_key2 = issuer_public_info[nb_attr_public_key + 3:]
+
+        #attributes work
+        nb_attr = len(self.response) - 1 + len(public_attrs)
+        public_attributes_idx = self.attributes_idx
+        public_attributes_bn = [Bn.from_binary(hashlib.sha256(attr.encode()).digest()) for attr in public_attrs]
+        hidden_attributes_idx = [i for i in range(nb_attr) if i not in public_attributes_idx]
+
+
+        #Gen C (left-hand side)
+        C = self.signature[1].pair(gen_g2_pk) / self.signature[0].pair(x_g2_pk)
+        for i in range(len(public_attrs)):
+            C = C * self.signature[0].pair(public_key2[public_attributes_idx[i]]) ** (-public_attributes_bn[i] % G1.order())
+
+        #Gen Challenge
+        challenge = hashlib.sha256(jsonpickle.encode(C).encode())
+        challenge.update(jsonpickle.encode(self.commitment).encode())
+        challenge.update(jsonpickle.encode(issuer_public_info).encode())
+        challenge.update(message)
+        challenge = Bn.from_binary(challenge.digest())
+
+        #check challenge
+        challenge_valid = challenge == self.challenge
+
+        #Compute zkp
+        candidate = C ** challenge * self.signature[0].pair(gen_g2_pk) ** self.response[0]
+        for e in zip(hidden_attributes_idx, self.response[1:]):
+            candidate = candidate * self.signature[0].pair(public_key2[e[0]]) ** e[1]
+
+        proof_valid = candidate == self.commitment
+
+
+        return challenge_valid and proof_valid 
 
     def serialize(self):
         """Serialize the object to a byte array.
