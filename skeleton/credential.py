@@ -92,6 +92,11 @@ class Issuer(object):
 class AnonCredential(object):
     """An AnonCredential"""
 
+    def __init__(self, server_pk, credential, attributes):
+        self.server_pk = server_pk
+        self.credential = credential
+        self.attributes = attributes
+    
     @staticmethod
     def create_issue_request(server_pk, attributes):
         """Gets all known attributes (subscription) of a user and creates an issuance request.
@@ -124,16 +129,11 @@ class AnonCredential(object):
         response = [e[0].mod_sub(challenge * e[1],G1.order()) for e in zip(comm_values, [t] + attributes)]
 
 
-        candidate = C ** challenge
-        for e in zip(server_pk, response):
-            candidate = candidate * e[0] ** e[1]
-
-
         return IssuanceRequest(C, comm, challenge, response),t
 
 
     @staticmethod
-    def receive_issue_response(response, t):
+    def receive_issue_response(server_pk, response, private_state):
         """This function finishes the credential based on the response of issue.
 
         Hint: you need both secret values from the create_issue_request and response
@@ -141,10 +141,11 @@ class AnonCredential(object):
 
         You should design the issue_request as you see fit.
         """
-        return (response[0], response[1] / (response[0] ** t))
+        t = private_state[0]
+        attributes = private_state[1]
+        return AnonCredential(server_pk,(response[0], response[1] / (response[0] ** t)),attributes)
 
-    @staticmethod
-    def sign(server_pk, credential, message, revealed_attr):
+    def sign(self, message, revealed_attr):
         """Signs the message.
 
         Args:
