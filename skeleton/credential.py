@@ -154,7 +154,51 @@ class AnonCredential(object):
         Return:
             Signature: signature
         """
-        return b'Hello'
+        #public_key separation
+        nb_attr_public_key = (len(self.server_pk) - 3) // 2
+        gen_g1_pk = self.server_pk[0]
+        public_key1 = self.server_pk[1:nb_attr_public_key + 1]
+        gen_g2_pk = self.server_pk[nb_attr_public_key + 1]
+        x_g2_pk = self.server_pk[nb_attr_public_key + 2]
+        public_key2 = self.server_pk[nb_attr_public_key + 3:]
+
+        #Gen signature
+        r = G1.order().random()
+        t = G1.order().random()
+        signature = (self.credential[0] ** r, (self.credential[1] * self.credential[0]**t)**r)
+
+        #attributes work
+        revealed_attributes_idx = [self.attributes.index(attr) for attr in self.attributes if attr in revealed_attr]
+        revealed_attributes_bn = [Bn.from_binary(hashlib.sha256(attr.encode()).digest()) for attr in revealed_attr]
+        hidden_attributes_idx = [self.attributes.index(attr) for attr in self.attributes if attr not in revealed_attr]
+        hidden_attributes_bn = [Bn.from_binary(hashlib.sha256(attr.encode()).digest()) for attr in self.attributes if attr not in revealed_attr]
+
+
+        #Gen C (left-hand side)
+        C = signature[1].pair(gen_g2_pk) / signature[0].pair(x_g2_pk)
+        for i in range(len(revealed_attr)):
+            C = C * signature[0].pair(public_key2[revealed_attributes_idx[i]]) ** (-revealed_attributes_bn[i] % G1.order())
+        
+
+        #Gen commitment (to prove right-hand side)
+        comm_values = [G1.order().random() for _ in range(len(hidden_attributes_idx) + 1)]
+        comm = signature[0].pair(gen_g2_pk) ** comm_values[0]
+        for e in zip(hidden_attributes_idx, comm_values[1:]):
+            comm = comm * signature[0].pair(public_key2[e[0]])**e[1]
+
+
+        #Gen Challenge
+        challenge = hashlib.sha256(jsonpickle.encode(C).encode())
+        challenge.update(jsonpickle.encode(comm).encode())
+        challenge.update(jsonpickle.encode(self.server_pk).encode())
+        challenge.update(message)
+        challenge = Bn.from_binary(challenge.digest())
+
+        #Gen Responses
+        response = [e[0].mod_sub(challenge * e[1],G1.order()) for e in zip(comm_values, [t] + hidden_attributes_bn)]
+
+
+        return Signature(signature, comm, challenge, response, revealed_attributes_idx)
 
 
 class Signature(object):
