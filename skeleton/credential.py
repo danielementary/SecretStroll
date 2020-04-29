@@ -91,18 +91,22 @@ class Issuer(object):
 
         You should design the issue_request as you see fit.
         """
+        #extract public and secret key
+        secret_key = sk[0]
+        public_key = sk[1]
+
         #Derive challenge
         challenge = hashlib.sha256(jsonpickle.encode(request.C).encode())
         challenge.update(jsonpickle.encode(request.commitment).encode())
-        challenge.update(jsonpickle.encode(request.server_pk).encode())
+        challenge.update(jsonpickle.encode(public_key).encode())
         challenge = Bn.from_binary(challenge.digest())
 
         #Compare the derived challenge to the received challenge
         challenge_valid = challenge == request.challenge
 
         #Compute the zkp
-        candidate = request.C ** request.challenge
-        for e in zip(request.server_pk, request.response):
+        candidate = request.C ** challenge
+        for e in zip(public_key, request.response):
             candidate = candidate * e[0] ** e[1]
         
 
@@ -111,7 +115,7 @@ class Issuer(object):
         #If the proof and the derived challenge is valid, sig the credential
         if proof_valid and challenge_valid:
             u = G1.order().random()
-            sig = (request.server_pk[0] ** u,(sk * request.C) ** u)
+            sig = (public_key[0] ** u,(secret_key * request.C) ** u)
             return sig
         else :
             raise ValueError
@@ -157,7 +161,7 @@ class AnonCredential(object):
             candidate = candidate * e[0] ** e[1]
 
 
-        return IssuanceRequest(C, comm, challenge, response, server_pk),t
+        return IssuanceRequest(C, comm, challenge, response),t
 
 
     @staticmethod
@@ -225,12 +229,11 @@ class Signature(object):
 
 class IssuanceRequest(object):
     """An Issuance Request"""
-    def __init__(self, C, commitment, challenge, response, server_pk):
+    def __init__(self, C, commitment, challenge, response):
         self.C = C
         self.commitment = commitment
         self.challenge = challenge
         self.response = response
-        self.server_pk = server_pk
     
     def serialize(self):
         data = jsonpickle.encode(self)

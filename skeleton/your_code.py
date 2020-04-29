@@ -41,6 +41,9 @@ class Server:
         pk = [gen_g1] + [gen_g1 ** i for i in exp[1:]] + [gen_g2] + [gen_g2 ** i for i in exp]
         sk = gen_g1 ** exp[0]
 
+        sk = [sk, pk, attr_list]
+
+
         return (jsonpickle.encode(pk).encode(), jsonpickle.encode(sk).encode())
 
 
