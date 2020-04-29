@@ -20,17 +20,27 @@
 \maketitle
 
 \begin{abstract}
-    Please report your design, implementation details, and findings of the second project in this report. \\
-    THE REPORT SHOULD NOT EXCEED 5 PAGES.
+    %Please report your design, implementation details, and findings of the second project in this report. \\
+    %THE REPORT SHOULD NOT EXCEED 5 PAGES.
+    This project consists of three parts, all related to a central topic : Privacy in a location based service.
+    The first part makes use of Attributes based credentials (ABC) and zero-knowledge proof to anonymously query a server for nearby Points of Interests (PoIs), while proving the ownership of a subscription. The second part we evaluate the loss of privacy induced by IP-level metadata. The last part of this project is dedicated to trying to infer location of query author, based solely on metadata. 
 \end{abstract}
 
 \section{Introduction}
 
-Provide a brief introduction about the aim of the project, and your road-map about the design/implementation for each sub-part.
+The aim of the first part of this project is to build a privacy-friendly location based service, SecretStroll, which allows users to query a database about nearby PoIs while remaining anonymous. Since this service is not free, every query must provide the proof of an active subscription. Each PoIs is part of a category such as \textit{Restaurant}, \textit{Cinema}, \textit{Train station}, etc. Each of these category are part of a subscription and a user can have many of them, which naturally leads to ABC. A user joining the service first register himself with the category he paid for and then sign each of his query anonymously, revealing only the categories he want to get PoIs from.
+%Second part 
+%Thirs part
 
 \section{Attribute-based credential}
-Explain how you mapped the system to the attribute based credential. How did you
-use the Fiat-Shamir heuristic?
+The base of the ABC scheme for this work is described in Section 6 of \cite{PS_Scheme}. This scheme has been used as follows : 
+\begin{itemize}
+    \item The messages mentionned in \cite{PS_Scheme} are attributes, representing categories of PoIs. The server creates a public key large enough to encode all of these attributes. 
+    \item When a user wants to register, she commits to attributes she paid for, that will remain hidden. She uses a zero-knowledge proof (ZKP) to prove that she did so correctly. The server checks the proof, and sign this commitment that she will then use as credential.
+    \item When a user makes a query, she choose the attributes (i.e the categories of PoIs) that she want. She then makes use of her credential to prove she has a subscription for the queried attributes, using a ZKP. She also uses this credential to sign a message representing her current location using the Fiat-Shamir heuristic described in \cite{FSheuristic} and detailed later.
+\end{itemize}
+
+In order to make the ZKP non-interactive, we use the Fiat-Shamir heuristic. The challenge that the prover would send is replaced by a cryptographic hash of all known values. During the registration, the challenge is composed of the committed attributes, the commitment used for the ZKP and the server's public. To sign the message for a query, it is simply added to the other values constituting the challenge.
 
 \subsection{Test}
 How did you test the system?
