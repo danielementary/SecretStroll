@@ -5,7 +5,7 @@ Classes that you need to complete.
 # Optional import
 from serialization import jsonpickle
 from credential import *
-from petrelic.multiplicative.pairing import G1, G2, GT
+from petrelic.multiplicative.pairing import G1, G2
 from petrelic.bn import Bn
 
 
@@ -42,6 +42,7 @@ class Server:
         sk = gen_g1 ** exp[0]
 
         sk = [sk, pk, attr_list]
+        pk = [pk, attr_list]
 
 
         return (jsonpickle.encode(pk).encode(), jsonpickle.encode(sk).encode())
@@ -62,8 +63,15 @@ class Server:
             response (bytes[]): the client should be able to build a credential
             with this response.
         """
-        jsonpickle.decode(issuance_request)
-        response = Issuer.issue(jsonpickle.decode(server_sk), jsonpickle.decode(issuance_request), username, attributes)
+        sk = jsonpickle.decode(server_sk)
+        attributes = attributes.split(',')
+
+        #Check if attributes chosen are valid
+        for attr in attributes:
+            if attr not in sk[2]:
+                raise RuntimeError("Revealed attributes are not valid")  
+
+        response = Issuer.issue(sk, jsonpickle.decode(issuance_request), username, attributes)
         return jsonpickle.encode(response).encode()
 
     def check_request_signature(
@@ -84,8 +92,18 @@ class Server:
         """
         signature = jsonpickle.decode(signature)
         pk = jsonpickle.decode(server_pk)
+
+        #Sanitization in case revealed_info is empty
         public_attrs = revealed_attributes.split(',')
-        return signature.verify(pk, public_attrs, message)
+        while '' in public_attrs:
+            public_attrs.remove('')
+
+        #Check if attributes revealed are valid
+        for attr in public_attrs:
+            if attr not in pk[1]:
+                raise RuntimeError("Revealed attributes are not valid")        
+
+        return signature.verify(pk[0], public_attrs, message)
 
 
 class Client:
@@ -110,7 +128,7 @@ class Client:
         """
         pk = jsonpickle.decode(server_pk)
         attributes = attributes.split(',')
-        request,t = AnonCredential.create_issue_request(pk, attributes)
+        request,t = AnonCredential.create_issue_request(pk[0], attributes)
 
         return request.serialize(), (t,attributes)
 
@@ -126,7 +144,7 @@ class Client:
         Return:
             credential (byte []): create an attribute-based credential for the user
         """
-        credential = AnonCredential.receive_issue_response(jsonpickle.decode(server_pk),jsonpickle.decode(server_response), private_state)
+        credential = AnonCredential.receive_issue_response(jsonpickle.decode(server_pk)[0],jsonpickle.decode(server_response), private_state)
         return jsonpickle.encode(credential).encode()
 
     def sign_request(self, server_pk, credential, message, revealed_info):
@@ -143,6 +161,19 @@ class Client:
         Returns:
             byte []: message's signature (serialized)
         """
-        signature = jsonpickle.decode(credential).sign(message, revealed_info.split(','))
+        revealed_attr = revealed_info.split(',')
+        credential = jsonpickle.decode(credential)
+
+        #Sanitization in case revealed_info is empty
+        while '' in revealed_attr:
+            revealed_attr.remove('')
+
+        #Check if attributes revealed are valid
+        for attr in revealed_attr:
+            if attr not in credential.attributes:
+                raise RuntimeError("Revealed attributes are not in the credential")
+
+        
+        signature = credential.sign(message, revealed_attr)
 
         return signature.serialize()
