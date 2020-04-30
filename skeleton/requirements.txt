@@ -6,3 +6,4 @@ PySocks
 pylint
 pytest
 requests
+pytest-benchmark
