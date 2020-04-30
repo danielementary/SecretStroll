@@ -40,11 +40,22 @@ The base of the ABC scheme for this work is described in Section 6 of \cite{PS_S
     \item When a user makes a query, she choose the attributes (i.e the categories of PoIs) that she want. She then makes use of her credential to prove she has a subscription for the queried attributes, using a ZKP. She also uses this credential to sign a message representing her current location using the Fiat-Shamir heuristic described in \cite{FSheuristic} and detailed later.
 \end{itemize}
 
-In order to make the ZKP non-interactive, we use the Fiat-Shamir heuristic. The challenge that the prover would send is replaced by a cryptographic hash of all known values. During the registration, the challenge is composed of the committed attributes, the commitment used for the ZKP and the server's public. To sign the message for a query, it is simply added to the other values constituting the challenge.
+In order to make the ZKP non-interactive, we use the Fiat-Shamir heuristic. The challenge that the prover would send is replaced by a cryptographic hash of all known values. During the registration, the challenge is composed of the committed attributes, the commitment used for the ZKP and the server's public. To sign the message for a query, it is simply added to the other values constituting the challenge. 
+
+This overall approach leaks only the number of attributes chosen, but it is necessery for the server to correctly compute the ZKP. Otherwise, hidden attributes cannot be inferred and every credential is unique.
 
 \subsection{Test}
-How did you test the system?
-You need to test the correct path and at least two failure paths.
+The system is tested with six different tests : 
+\begin{enumerate}
+    \item \textit{test\_generate\_ca()} : The server's certificate generation is tested with a simple structure test, to see if all keys have the right lenghth.
+    \item \textit{test\_credentials\_difference()} : Two requests are created with the same input parameters, a registration is perforemd with both of them and two credentials are created. To preserve anonymity, the requests and the built credential should be different. \\ Two credentials created from the same request should also be different.
+    \item \textit{test\_tampered\_credential()} : A request with invalid credential should be rejected. In this test, a valid credential is tampered to be invalid.
+    \item \textit{test\_correct\_credential()} : A request with a correct credential should be accepted.
+    \item \textit{test\_correct\_credential\_no\_attributes()} : A request revealing no attributes should be valid.
+    \item \textit{test\_wrong\_revealed\_attr()} : A request revealing unobtained attributes should be invalid.
+\end{enumerate}
+The effectiveness of these tests could be assessed using a standard metric such as branch coverage or coverage. However, these metrics are not complete and will not discover every bug present in the code.
+
 
 \subsection{Evaluation}
 Evaluate your ABC: report communication and computation stats (mean and standard
