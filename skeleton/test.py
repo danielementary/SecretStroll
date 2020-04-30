@@ -1,7 +1,6 @@
 from credential import *
 from your_code import *
 import petrelic.multiplicative.pairing
-from petrelic.multiplicative.pairing import G1, G2
 from serialization import jsonpickle
 
 import pytest
@@ -73,7 +72,7 @@ def test_tampered_credential():
     attributes = "a,b,c,d,e"
     chosen_attr = "d,e"
     revealed_attr = "e"
-    username = "chaplinc"
+    username = "gannimo"
     message = "46.5 6.6".encode()
 
     pk, sk = Server.generate_ca(attributes)
@@ -125,7 +124,7 @@ def test_correct_credential_no_attributes():
     attributes = "alpha,beta,gamma,delta,eta"
     chosen_attr = "alpha,beta,gamma,delta,eta"
     revealed_attr = ""
-    username = "gannimo"
+    username = "vaudenays"
     message = "46.4 6.5".encode()
 
     pk, sk = Server.generate_ca(attributes)
