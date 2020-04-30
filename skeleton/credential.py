@@ -8,7 +8,7 @@
 # (network API expects byte[] as input).
 
 from serialization import jsonpickle
-from petrelic.multiplicative.pairing import G1, G2, GT
+from petrelic.multiplicative.pairing import G1, G2
 from petrelic.bn import Bn
 import hashlib
 
