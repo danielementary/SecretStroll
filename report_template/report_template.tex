@@ -62,6 +62,71 @@ Evaluate your ABC: report communication and computation stats (mean and standard
 deviation). Report statistic on key generation, issuance, signing, and
 verification.
 
+The system is benchmarked in two parts, an offline part, which evaluate pure computationnal time and an online part which evaluate the communication time.
+
+\subsubsection{Offline benchmark}
+The offline benchmark tests four features :
+\begin{itemize}
+    \item Key generation
+    \item Credential issuance
+    \item Message signing
+    \item Signature verification
+\end{itemize}
+The result are shown in figure \ref{benchoffline_fig}
+and reported in table \ref{benchoffline}
+\begin{table}
+\begin{tabular}{|c|c|c|c|}
+    \hline
+                            & Rounds  & Mean      & Std. deviation  \\
+    \hline
+    Key generation          & 1000    & 27.30 ms  & 4.30 ms         \\
+    \hline
+    Credential issuance     & 1000    & 41.86 ms  & 8.24 ms         \\
+    \hline
+    Message signing         & 1000    & 44.34 ms  & 10.32 ms        \\
+    \hline
+    Signature verification  & 1000    & 44.31 ms  & 9.52 ms         \\
+    \hline    
+\end{tabular}
+\caption{Result of the offline benchmark, }
+\label{benchoffline}
+\end{table}
+\begin{figure}
+    \includegraphics[width=\columnwidth]{benchmark.png} 
+    \caption{Histogram of the offline benchmark}
+    \label{benchoffline_fig}
+\end{figure}
+
+\subsubsection{Online benchmark}
+The onlin benchmark tests two features :
+\begin{itemize}
+    \item Registration
+    \item PoIs request
+\end{itemize}
+Note : This benchmark has requirements. Follow the instructions at the beginning of \textit{benchmark\_net.py}.
+
+The result are shown in figure \ref{benchonline_fig}
+and reported in table \ref{benchonline}
+\begin{table}
+\begin{tabular}{|c|c|c|c|}
+    \hline
+                    & Rounds    & Mean      & Std. deviation    \\
+    \hline
+    Registration    & 1000      & 53.58 ms  & 1.93 ms           \\
+    \hline
+    PoIs request    & 1000      & 90.07 ms  & 1.90 ms           \\
+    \hline   
+\end{tabular}
+\caption{Result of the online benchmark}
+\label{benchonline}
+\end{table}
+\begin{figure}
+    \includegraphics[width=\columnwidth]{benchmark_net.png}
+    \caption{Histogram of the online benchmark}
+    \label{benchonline_fig}
+\end{figure}
+
+
 \section{(De)Anonymization of User Trajectories}
 
 \subsection{Privacy Evaluation}
