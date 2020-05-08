@@ -132,8 +132,32 @@ and reported in table \ref{benchonline}
 \subsection{Privacy Evaluation}
 We evaluate the privacy risks using simulated data of two hundred users who made use of the application hundred times each in average over twenty days. We assume that no mechanism to hide any kind of data is used, i.e. data is sent in cleartext inside standard IP packets. Any malicious adversary could hack the application servers or sniff the network between a user and the server in order to retrieve similar datasets which include IP addresses, locations, query types, timestamps and responses. According to \cite{dont}, the IP address or a set or IP addresses are relevant attributes because they can be linked to a given user since they are persistent for a certain duration. Moreover, combining IP addresses with location and time data makes sense since users often keep their habits that they may share with very few people \cite{on}, i.e. they may work during the day at their office, be back home in the evening and do an activity at some specific location. Therefore, we deduce that this implementation leak senstive informations about the users. As a proof of concept for breaching users privacy, we try to infer work and home locations of users as well as habits in their activities.
 
+We build our attacks in a constructive way, starting by learning general tendencies about the users, then, we focus on one specific user in order to learn how far we can go with breaching breach its privacy.
+
+As stated before, home and work are sensitive locations because they allow to identify users. In order to learn about them, we go through all users queries and check if users queries locations correspond to home types locations such as \textit{appartment\_block} or \textit{villa} as well as work types locations such as \textit{office}, \textit{laboratory} or \textit{company}. It turns out that each user has one location of each from where it does a majority of its queries which allows us to draw a map linking IP addresses to their corresponding home and work location. Moreover \ref{share_fig} confirms our concern about users anonymity once their home and work locations would leak in the given setup. The logarithmic scale clearifies the orders of magnitude between people who share or not these POIs showing that the majority of the users have a tuple home and work location that they share with very few people as presented by \cite{on}.
+
+\begin{figure}
+  \includegraphics[width=\columnwidth]{share.png}
+  \caption{Comparison of how people share their main POIs}
+  \label{share_fig}
+\end{figure}
+
+Then, we analyze when users make use of the app from their home and work locations. On the one hand, we observe that they use it regularly on a daily basis from home. On the other hand, we can see that they query the service from their work location only during weekdays, which is compatible with not working on the weekend. Moreover, we consider when the app is used during the day at work in \ref{when_fig}. This shows that users likely spend their day at work while being at home at the end of the day. This short analysis gives a great understanding of users habits even though the presented results seem trivial.
+
+\begin{figure}
+  \includegraphics[width=\columnwidth]{when.png}
+  \caption{User habits}
+  \label{when_fig}
+\end{figure}
+
 Provide a privacy analysis of the dataset. You should explicitly state your assumptions, adversary
 models, methods, and findings.
+
+\begin{figure}
+  \includegraphics[width=\columnwidth]{random.png}
+  \caption{Monitoring of a randomly chosen user using collecting data}
+  \label{random_fig}
+\end{figure}
 
 \subsection{Defences}
 Propose a defence that users of the service could deploy to protect their privacy.  You
