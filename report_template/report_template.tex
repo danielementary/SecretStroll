@@ -161,6 +161,10 @@ To sum up, we assessed how we could breach users privacy by analyzing either gen
 \end{figure}
 
 \subsection{Defences}
+Now that assessed that we assessed the privacy issues of this app, we suggest one simple and lightweight client-side defence that would help improving it.
+
+We remember that the purpose of this app is to suggest POIs of a given type in the grid-based vicinity of the user. According to the specifications and \cite{deg}, an actual grid cell is of a similar scale of a city whose side measures a few kilometers. However, the collected location infomartions has artificially ridiculous precision considering that eight decimal places is precise up to a millimeter. For this, we can suggest generalization by reducing the precision of the queries locations to two decimal degrees. In fact, it is still sufficiently precise to determine in which grid cell the service should do its recommendation in this setup. A cleaner way of implementing this would be by allowing users to download the grid cells locations and dimensions so that when querying the server they would transmit the minimum of information required to keep its functionality, i.e. a cell ID.
+
 Propose a defence that users of the service could deploy to protect their privacy.  You
 should state your assumptions, adversary models, and provide an experimental evaluation of your
 defences using the datasets and the grid specification. You should also discuss the
