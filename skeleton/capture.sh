@@ -1,0 +1,16 @@
+#!/bin/bash
+for j in {1..10}
+do
+echo j
+echo $j
+  for i in {1..100}
+  do
+    echo i
+    echo $i
+    tcpdump -i lo 'port 9050' -w data/$i\_$j.pcap &
+    sleep 0.1
+    python3 client.py grid -p key-client.pub -c attr.cred -r 'a' -t $i > /dev/null
+    sleep 0.1
+    kill "$!"                      # kill the background process
+  done
+done
