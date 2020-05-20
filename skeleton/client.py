@@ -250,7 +250,7 @@ def client_register(args):
         host, proxy = get_conn_params(args.tor)
 
         url = "http://{}/register".format(host)
-        params = {
+        files = {
             "username": username,
             "attributes": attributes,
             "issuance_req": issuance_req,
@@ -258,7 +258,7 @@ def client_register(args):
 
         # Done in a proper way, we would use HTTPS instead of HTTP.
         session = create_session(proxy)
-        res = session.post(url=url, params=params)
+        res = session.post(url=url, files=files)
 
         if res.status_code != 200:
             raise SimpleHTTPError("The client failed to register to the server!")

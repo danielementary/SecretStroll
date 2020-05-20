@@ -177,9 +177,9 @@ def get_public_key():
 @APP.route("/register", methods=["POST"])
 def register():
     """Handle registrations."""
-    username = request.args.get("username")
-    attributes = request.args.get("attributes")
-    issuance_req = request.args.get("issuance_req")
+    username = request.files.get("username").read().decode("utf-8")
+    attributes = request.files.get("attributes").read().decode("utf-8")
+    issuance_req = request.files.get("issuance_req").read()
     anon_cred = SERVER.register(SECRET_KEY, issuance_req, username, attributes)
 
     res = make_response(anon_cred)
