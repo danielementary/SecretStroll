@@ -1,9 +1,5 @@
 #!/bin/bash
-for j in {1..10}
-do
-echo j
-echo $j
-  for i in {1..100}
+for i in {1..100}
   do
     echo i
     echo $i
@@ -13,4 +9,3 @@ echo $j
     sleep 0.1
     kill "$!"                      # kill the background process
   done
-done
