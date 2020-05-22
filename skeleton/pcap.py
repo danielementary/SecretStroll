@@ -52,7 +52,8 @@ def aggregate():
         lens = []
         for pkt in packets:
             pkt[TCP].remove_payload()
-            lens.append(str(len(raw(pkt))))
+            if pkt[IP].len > 2500:
+                lens.append(str(pkt[IP].len))
 
         datas[cell_id].append(lens)
 
@@ -70,7 +71,7 @@ def save_aggregate():
         writer.writeheader()
         for k,v in a.items():
             for i in v:
-                writer.writerow({"id": k, "lens": ";".join(i)})
+                writer.writerow({"id": k, "lens": str(len(i)) + ";" + ";".join(i)})
 
     print("saved successfully")
 
