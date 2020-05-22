@@ -1,4 +1,5 @@
 from scapy.all import *
+import numpy as np
 import csv
 import sys
 import os
@@ -74,8 +75,8 @@ def save_aggregate():
     print("saved successfully")
 
 def load_aggregate():
-    x = []
-    y = []
+    x, y = [], []
+    max_l = -1
 
     with open("packets_lens.csv", newline="") as csvfile:
         reader = csv.reader(csvfile, delimiter=" ")
@@ -85,8 +86,34 @@ def load_aggregate():
             i, l = int(i), [float(t) for t in l.split(";")]
             y.append(i)
             x.append(l)
+            max_l = max(max_l, len(l))
 
-    return x, y
+    return x, y, max_l
+
+def indices(y):
+    np.random.seed(1)
+    num_row = len(y)
+    interval = int(num_row / 10)
+    indices = np.random.permutation(num_row)
+
+    return [indices[k * interval: (k + 1) * interval] for k in range(10)]
+
+
+def load_folds():
+    x, y, max_l = load_aggregate()
+    for i in range(len(x)):
+        x[i] = x[i]+[0]*(max_l-len(x[i]))
+
+    x, y = np.array(x), np.array(y)
+
+    x_folds, y_folds = [], []
+    i_s = indices(y)
+
+    for i in i_s:
+        x_folds.append(x[i].tolist())
+        y_folds.append(y[i].tolist())
+
+    return x_folds, y_folds, max_l
 
 if __name__ == "__main__":
     if sys.argv[1] == "filter":
@@ -102,6 +129,6 @@ if __name__ == "__main__":
     elif sys.argv[1] == "save":
         save_aggregate()
     elif sys.argv[1] == "load":
-        load_aggregate()
+        load_folds()
     else:
         print("unrecognized command!")
