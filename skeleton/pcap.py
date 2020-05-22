@@ -1,4 +1,5 @@
 from scapy.all import *
+import csv
 import sys
 import os
 import re
@@ -47,14 +48,45 @@ def aggregate():
                     cell_id = re.search(r'\d+',pkt[TCP].load.decode('utf-8')[i:]).group()
                     break
             
-        temp = b''
+        lens = []
         for pkt in packets:
             pkt[TCP].remove_payload()
-            temp += raw(pkt)
+            lens.append(str(len(raw(pkt))))
 
-        datas[cell_id].append(temp)
+        datas[cell_id].append(lens)
 
     return datas
+
+def save_aggregate():
+    print("aggregating data...")
+    a = aggregate()
+
+    print("saving...")
+    with open("packets_lens.csv", "w", newline="") as csvfile:
+        fieldnames = ["id", "lens"]
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames, delimiter=" ")
+
+        writer.writeheader()
+        for k,v in a.items():
+            for i in v:
+                writer.writerow({"id": k, "lens": ";".join(i)})
+
+    print("saved successfully")
+
+def load_aggregate():
+    x = []
+    y = []
+
+    with open("packets_lens.csv", newline="") as csvfile:
+        reader = csv.reader(csvfile, delimiter=" ")
+        h = next(reader)
+        for r in reader:
+            i, l = r
+            i, l = int(i), [float(t) for t in l.split(";")]
+            y.append(i)
+            x.append(l)
+
+    return x, y
 
 if __name__ == "__main__":
     if sys.argv[1] == "filter":
@@ -67,5 +99,9 @@ if __name__ == "__main__":
             filter2(False)
     elif sys.argv[1] == "aggregate":
         aggregate()
+    elif sys.argv[1] == "save":
+        save_aggregate()
+    elif sys.argv[1] == "load":
+        load_aggregate()
     else:
         print("unrecognized command!")
