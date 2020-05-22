@@ -128,7 +128,5 @@ if __name__ == "__main__":
         aggregate()
     elif sys.argv[1] == "save":
         save_aggregate()
-    elif sys.argv[1] == "load":
-        load_folds()
     else:
         print("unrecognized command!")
