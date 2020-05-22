@@ -9,7 +9,6 @@ def filter2(remove):
 
     nb_file = 0
     for file in os.listdir("data"):
-    #file ="9_7.pcap"
         nb = 0
         cell_id = 0
         #print("Processing File: " + file)
