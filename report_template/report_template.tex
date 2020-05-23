@@ -67,23 +67,39 @@ The offline benchmark tests four features :
 \end{itemize}
 The result are shown in figure \ref{benchoffline_fig}
 and reported in table \ref{benchoffline}
-\begin{table}
-\begin{tabular}{|c|c|c|c|}
-    \hline
-                            & Rounds  & Mean      & Std. deviation  \\
-    \hline
-    Key generation          & 1000    & 27.30 ms  & 4.30 ms         \\
-    \hline
-    Credential issuance     & 1000    & 41.86 ms  & 8.24 ms         \\
-    \hline
-    Message signing         & 1000    & 44.34 ms  & 10.32 ms        \\
-    \hline
-    Signature verification  & 1000    & 44.31 ms  & 9.52 ms         \\
-    \hline    
+
+\begin{table}[]
+\centering
+\begin{tabular}{|l|l|l|}
+\hline
+                                 & Median [ms] & Std Dev [ms] \\ \hline
+test\_registration on i7         & 47.86  & 12.50   \\ \hline
+test\_registration on i9         & 53.42  & 20.27   \\ \hline
+test\_credential\_checking on i7 & 96.34  & 12.97   \\ \hline
+test\_credential\_checking on i9 & 96.01  & 2.63    \\ \hline
 \end{tabular}
-\caption{Result of the offline benchmark, }
+\caption{ABC system online benchmark on 500 rounds}
+\label{benchonline}
+\end{table}
+
+\begin{table}[]
+\centering
+\begin{tabular}{|l|l|l|}
+\hline
+                                 & Median [ms] & Std Dev [ms] \\ \hline
+test\_key\_generation on i7      & 26.73  & 1.63    \\ \hline
+test\_key\_generation on i9      & 25.45  & 1.25    \\ \hline
+test\_credential\_checking on i7 & 45.32  & 3.84    \\ \hline
+test\_credential\_checking on i9 & 38.86  & 2.04    \\ \hline
+test\_credential\_showing on i7  & 46.92  & 5.23    \\ \hline
+test\_credential\_showing on i9  & 39.56  & 2.18    \\ \hline
+test\_credential\_issuance on i7 & 44.37  & 4.26    \\ \hline
+test\_credential\_issuance on i9 & 39.87  & 1.90    \\ \hline
+\end{tabular}
+\caption{ABC system offline benchmark on 500 rounds}
 \label{benchoffline}
 \end{table}
+
 \begin{figure}
     \includegraphics[width=\columnwidth]{benchmark.png} 
     \caption{Histogram of the offline benchmark}
@@ -100,19 +116,6 @@ Note : This benchmark has requirements. Follow the instructions at the beginning
 
 The result are shown in figure \ref{benchonline_fig}
 and reported in table \ref{benchonline}
-\begin{table}
-\begin{tabular}{|c|c|c|c|}
-    \hline
-                    & Rounds    & Mean      & Std. deviation    \\
-    \hline
-    Registration    & 1000      & 53.58 ms  & 1.93 ms           \\
-    \hline
-    PoIs request    & 1000      & 90.07 ms  & 1.90 ms           \\
-    \hline   
-\end{tabular}
-\caption{Result of the online benchmark}
-\label{benchonline}
-\end{table}
 \begin{figure}
     \includegraphics[width=\columnwidth]{benchmark_net.png}
     \caption{Histogram of the online benchmark}
