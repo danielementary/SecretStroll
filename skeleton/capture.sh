@@ -1,4 +1,7 @@
 #!/bin/bash
+
+#Script to query every cell once, and store the captured output in a file. The script needs an argument to store the output as cell_arg.pcap
+#Used for data capture
 for i in {1..100}
   do
     echo i
