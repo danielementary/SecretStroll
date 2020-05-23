@@ -5,3 +5,4 @@ petrelic
 PySocks
 pytest
 requests
+pytest-benchmark
