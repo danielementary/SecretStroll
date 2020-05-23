@@ -72,20 +72,6 @@ and reported in table \ref{benchoffline}
 \begin{tabular}{|l|l|l|}
 \hline
                                  & Median [ms] & Std Dev [ms] \\ \hline
-test\_registration on i7         & 47.86  & 12.50   \\ \hline
-test\_registration on i9         & 53.42  & 20.27   \\ \hline
-test\_credential\_checking on i7 & 96.34  & 12.97   \\ \hline
-test\_credential\_checking on i9 & 96.01  & 2.63    \\ \hline
-\end{tabular}
-\caption{ABC system online benchmark on 500 rounds}
-\label{benchonline}
-\end{table}
-
-\begin{table}[]
-\centering
-\begin{tabular}{|l|l|l|}
-\hline
-                                 & Median [ms] & Std Dev [ms] \\ \hline
 test\_key\_generation on i7      & 26.73  & 1.63    \\ \hline
 test\_key\_generation on i9      & 25.45  & 1.25    \\ \hline
 test\_credential\_checking on i7 & 45.32  & 3.84    \\ \hline
@@ -98,6 +84,21 @@ test\_credential\_issuance on i9 & 39.87  & 1.90    \\ \hline
 \caption{ABC system offline benchmark on 500 rounds}
 \label{benchoffline}
 \end{table}
+
+\begin{table}[]
+\centering
+\begin{tabular}{|l|l|l|}
+\hline
+                                 & Median [ms] & Std Dev [ms] \\ \hline
+test\_registration on i7         & 47.86  & 12.50   \\ \hline
+test\_registration on i9         & 53.42  & 20.27   \\ \hline
+test\_credential\_checking on i7 & 96.34  & 12.97   \\ \hline
+test\_credential\_checking on i9 & 96.01  & 2.63    \\ \hline
+\end{tabular}
+\caption{ABC system online benchmark on 500 rounds}
+\label{benchonline}
+\end{table}
+
 
 \subsubsection{Online benchmark}
 The online benchmark tests two features :
