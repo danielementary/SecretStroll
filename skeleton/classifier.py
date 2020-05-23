@@ -10,8 +10,6 @@ import numpy
 class Basic_Net(nn.Module):
     def __init__(self):
         super(Basic_Net, self).__init__()
-        nb_hidden_1 = 200
-        nb_hidden_2 = 500
         self.conv1 = nn.Conv1d(1, 32, kernel_size=66, stride=66)
         self.conv2 = nn.Conv1d(32, 64, kernel_size=3)
         self.fc1 = nn.Linear(64 * 198, 500)
@@ -83,7 +81,6 @@ def main():
 
     #Parameters loading
     folds_data, folds_result, max_l = load_folds()
-    print(max_l)
 
     error_rate = [0] * 10
 
