@@ -20,8 +20,6 @@
 \maketitle
 
 \begin{abstract}
-    %Please report your design, implementation details, and findings of the second project in this report. \\
-    %THE REPORT SHOULD NOT EXCEED 5 PAGES.
     This project consists of three parts, all related to a central topic : Privacy in a location based service.
     The first part makes use of Attributes based credentials (ABC) and zero-knowledge proof to anonymously query a server for nearby Points of Interests (PoIs), while proving the ownership of a subscription. The second part we evaluate the loss of privacy induced by IP-level metadata. The last part of this project is dedicated to trying to infer location of query author, based solely on metadata. 
 \end{abstract}
@@ -29,8 +27,7 @@
 \section{Introduction}
 
 The aim of the first part of this project is to build a privacy-friendly location based service, SecretStroll, which allows users to query a database about nearby PoIs while remaining anonymous. Since this service is not free, every query must provide the proof of an active subscription. Each PoIs is part of a category such as \textit{Restaurant}, \textit{Cinema}, \textit{Train station}, etc. Each of these category are part of a subscription and a user can have many of them, which naturally leads to ABC. A user joining the service first register himself with the category he paid for and then sign each of his query anonymously, revealing only the categories he want to get PoIs from.
-%Second part 
-%Thirs part
+
 
 \section{Attribute-based credential}
 The base of the ABC scheme for this work is described in Section 6 of \cite{PS_Scheme}. This scheme has been used as follows : 
@@ -165,18 +162,106 @@ This defense aims to protect the privacy related to the exact location of each q
 
 Our defence machnism does not affect utility from the results perspective. User will be able to receive the same suggestions as without this mechanism. In fact, we limit the user's outgoing information to what is strictly necessary to achieve the same utility in this setup. However, having to process this information locally to deduce the cell ID would require the user to have these grid properties stored on its phone. When travelling to a new region, the user may not have the coordinates available to derive the right cell ID which could limit the utility by requiring additional bandwith.
 
-Making use of this mechanism allowed us to turn the previous anonymity set of peole sharing at least of home or work location from 457 pairs of users to 1186 pairs of user. This poor improvement can be justified mostly by the simplicity of the mechanism as well as by the non uniform distribution of POIs in the specified grids. The used mechanism of strongly utility oriented since it does not improve the privacy reasonably but preserves a similar utility with negligeable overhead. For this mechanism to be more efficient, strong assumptions about how grid are drawn, i.e. increase grid cells in order to include more POIs in each and provide better anonymity. This would also imply a utility decrease as the notion of vicinity my become too broad for the user to find POIs nearby. An alternative that would be interesting to assess in a future work would be replacing actual location informations by dummy ones. POIs are already established, we can make use of their semantic to compensate the usual lack of plausibility often experienced by this mechanism, i.e. a user could replace its home location by an other one located nearby in order to prevent the leak of its.
+Making use of this mechanism allowed us to turn the previous anonymity set of peole sharing at least of home or work location from 457 pairs of users to 1186 pairs of user. This poor improvement can be justified mostly by the simplicity of the mechanism as well as by the non uniform distribution of POIs in the specified grids. The used mechanism of strongly utility oriented since it does not improve the privacy reasonably but preserves a similar utility with negligeable overhead. For this mechanism to be more efficient, strong assumptions about how grid are drawn, i.e. increase grid cells in order to include more POIs in each and provide better anonymity. This would also imply a utility decrease as the notion of vicinity my become too broad for the user to find POIs nearby. An alternative that would be interesting to assess in a future work would be replacing actual location informations by dummy ones. POIs are already established, we can make use of their semantic to compensate the usual lack of plausibility often experienced by this mechanism, i.e. a user could replace its home location by an other one located nearby in order to prevent the leak of it.
 
 \section{Cell Fingerprinting via Network Traffic Analysis}
 
 \subsection{Implementation details}
-Provide a description of your implementation here. You should provide details on your data collection methods, feature extraction, and classifier training.
+\subsubsection{Data collection}
+The data was collected using the \verb|capture.sh| script. It loops through all the cells, queries the server for it, and dump the traffic between the client and the proxy. The traffic is captured there to avoid parasitic traffic. Each cell was queried 10 times, for a total of 1000 queries.
+
+The file \verb|pcap.py| contains various function, to check the correctness of the capture file, aggregate features and save them in a csv to store them and prepare the data for our classifier. Note that since we used these functions for data collections only, they are not designed to be robust and might crash if the format requirements are not met. 
+
+The data fed to the classifier consists of the bytes of the packets header converted to an integer between 0 and 255. Each of these values is normalized to be in the $[0,1]$ range. To allows the classifier to extract some structure, we kept only the headers who were 66 bytes long, which was the most frequent. We also kept only the first 400 packets, to have a reasonable training time. All capture smaller than 400 packets are simply padded with 0 bytes. These numbers are totally arbitrary and could be tuned if the available hardware was more powerful.
+
+\subsubsection{Classification}
+Inspired by \cite{tor_classification} and \cite{dl_encrypted}, we implemented our classifier as a standard convolutionnal neural network. Its architecture is shown in figure \ref{model_arch} and is constituted of the following layers:
+
+\begin{enumerate}
+    \item Convolution
+        \begin{itemize}
+            \item Input channels: 1
+            \item Output channels: 32
+            \item Kernel size: 66
+            \item Stride: 66
+        \end{itemize}
+        The parameters of this layer allows the classifier to extract per packet features.
+    \item Max-Pool: 
+        \begin{itemize}
+         \item Kernel size: 2
+        \end{itemize}
+    \item ReLu
+    \item Convolution
+        \begin{itemize}
+            \item Input channels: 32
+            \item Output channels: 64
+            \item Kernel size: 3
+        \end{itemize}
+    \item ReLu
+    \item Fully connected
+        \begin{itemize}
+            \item Input size: 12672
+            \item Output size: 500
+        \end{itemize}
+    \item ReLu
+    \item Fully connected
+        \begin{itemize}
+            \item Input size: 200
+            \item Output size: 500
+        \end{itemize}
+\end{enumerate}
+
+\begin{figure}
+    \centering
+    \includegraphics[scale=0.5]{model.png}
+    \caption{Architecture of the CNN classifier \textsuperscript{1}}
+    \small\textsuperscript{1} The software is available on Github under a MIT license (\url{https://github.com/mlajtos/moniel}).
+    \label{model_arch}
+\end{figure}
+The training is done with 50 epochs, the cross-entropy is used as loss function and the \textit{Adam optimizer} as optimizer. As we used 10-fold cross-validation, the training dataset is constituted of 900 samples, the test dataset contains 100 samples.
+
+
 
 \subsection{Evaluation}
-Provide an evaluation of your classifier here -- the metrics after 10-fold cross validation.
+After a 10 fold cross validation, the results are represented in table \ref{test_error}.
+
+\begin{table}
+    \centering
+    \begin{tabular}{|c|c|}
+        \hline
+        Iteration & Error rate      \\
+        \hline
+        1      & $66\%$  \\
+        \hline
+        2      & $81\%$  \\
+        \hline
+        3      & $68\%$  \\
+        \hline
+        4      & $54\%$  \\
+        \hline 
+        5      & $74\%$  \\
+        \hline
+        6      & $68\%$  \\
+        \hline 
+        7      & $86\%$  \\
+        \hline
+        8      & $73\%$  \\
+        \hline 
+        9      & $83\%$  \\
+        \hline
+        10      & $80\%$  \\
+        \hline      
+    \end{tabular}
+    \caption{Test error rate for each iteration}
+    \label{test_error}
+\end{table}
+
+The final average is $73.3\%$ error rate, with a standard deviation of $9.18\%$.
 
 \subsection{Discussion and Countermeasures}
-Comment on your findings here. How well did your classifier perform? What factors could influence its performance? Are there countermeasures against this kind of attack?
+At first sight, it seems that our classifier is quite bad. However, considering the number of possible classes, if we were guessing at random, we would have an error rate of $99\%$. This classifier allows us to improve our confidence approximately 26 times! Even by using Tor, our anonymity is not that protected. It is also important to note that this classifier was trained using a relatively small dataset, and low computationnal power. With more time and more powerful processing power, this result can surely be improved a lot.
+
+Finding countermeasures to such a tool is extremely difficult. Machine Learning tries to extract structure in the data, and even when there is no structure at all, as seen in class, we can train an algorithm to detect this lack of structure. 
 
 \bibliographystyle{IEEEtran}
 \bibliography{bib}
