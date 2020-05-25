@@ -21,19 +21,19 @@
 
 \begin{abstract}
   This project is split into three parts related to users privacy in the context of a location based service.
-  In the first part we make use of attribute based credentials (hereafter ABC) and zero-knowledge proof to anonymously query a server for nearby points of interests (hereafter PoIs) and prove the ownership of a subscription. The second part is dedicated to the loss of privacy induced by IP-level metadata leak. The last part allows us to try to infer the location of users based on the eavedroppen metadata of their queries routed through Tor.
+  In the first part we make use of attribute based credentials (hereafter ABC) and zero-knowledge proof (hereafter ZKP) to anonymously query a server for nearby points of interests (hereafter PoIs) and prove the ownership of a subscription. The second part is dedicated to the loss of privacy induced by IP-level metadata leak. The last part allows us to try to infer the location of users based on the eavedroppen metadata of their queries routed through Tor.
 \end{abstract}
 
 \section{Introduction}
 
-The aim of the first part of this project is to build a privacy-friendly location based service called SecretStroll, which allows users to query a database about nearby PoIs while remaining anonymous. Since this service is not free, every query must provide the proof of an active subscription. Each PoI is part of a category such as \textit{Restaurant}, \textit{Office}, \textit{Dojo}, etc. Each of these categories is part of a subscription and users may have multiple of them, which leads to ABC. A user joining the service first registers himself with the categories he paid for and signs each of his queries anonymously, revealing only the categories he want to get PoIs from. In the following parts we assess remaining privacy issues and possible attacks as well as potential defences and their effectiveness.
+The aim of the first part of this project is to build a privacy-friendly location based service called SecretStroll, which allows users to query a database about nearby PoIs while remaining anonymous. Since this service is not free, every query must provide the proof of an active subscription. Each PoI is part of a category such as \textit{Restaurant}, \textit{Office}, \textit{Dojo}, etc. Each of these categories is part of a subscription and users may have multiple of them, which leads to ABC. A user joining the service first registers herself with the categories she paid for and signs each of her queries anonymously, revealing only the categories she wants to get PoIs from. In the following parts we assess remaining privacy issues and possible attacks as well as potential defences and their effectiveness.
 
 \section{Attribute-based credential}
 The base of the ABC scheme for this work is described in Section 6 of \cite{PS_Scheme}. This scheme has been used as follows : 
 \begin{itemize}
     \item The messages mentionned in \cite{PS_Scheme} are attributes, representing categories of PoIs. The server creates a public key large enough to encode all of these attributes. 
-    \item When a user wants to register, she commits to attributes she paid for, that will remain hidden. She uses a zero-knowledge proof (ZKP) to prove that she did so correctly. The server checks the proof, and sign this commitment that she will then use as credential.
-    \item When a user makes a query, she choose the attributes (i.e the categories of PoIs) that she want. She then makes use of her credential to prove she has a subscription for the queried attributes, using a ZKP. She also uses this credential to sign a message representing her current location using the Fiat-Shamir heuristic described in \cite{FSheuristic} and detailed later.
+    \item When a user wants to register, she commits to attributes she paid for, that will remain hidden. She uses a ZKP to prove that she did so correctly. The server checks the proof, and sign this commitment that she will then use as credential.
+    \item When a user makes a query, she chooses the attributes, i.e the categories of PoIs, that she wants. Then, she makes use of her credential to prove she has a valid subscription for the queried attributes, using a ZKP. She also uses this credential to sign a message representing her current location using the Fiat-Shamir heuristic described in \cite{FSheuristic} and detailed later.
 \end{itemize}
 
 In order to make the ZKP non-interactive, we use the Fiat-Shamir heuristic. The challenge that the prover would send is replaced by a cryptographic hash of all known values. During the registration, the challenge is composed of the committed attributes, the commitment used for the ZKP and the server's public. To sign the message for a query, it is simply added to the other values constituting the challenge. 
@@ -43,8 +43,8 @@ This overall approach leaks only the number of attributes chosen, but it is nece
 \subsection{Test}
 The system is tested with six different tests : 
 \begin{enumerate}
-    \item \textit{test\_generate\_ca()} : The server's certificate generation is tested with a simple structure test, to see if all keys have the right lenghth.
-    \item \textit{test\_credentials\_difference()} : Two requests are created with the same input parameters, a registration is perforemd with both of them and two credentials are created. To preserve anonymity, the requests and the built credential should be different. \\ Two credentials created from the same request should also be different.
+    \item \textit{test\_generate\_ca()} : The server's certificate generation is tested with a simple structure test, to see if all keys have the right length.
+    \item \textit{test\_credentials\_difference()} : Two requests are created with the same input parameters, a registration is performed with both of them and two credentials are created. To preserve anonymity, the requests and the generated credential should be different. \\ Two credentials created from the same request should also be different.
     \item \textit{test\_tampered\_credential()} : A request with invalid credential should be rejected. In this test, a valid credential is tampered to be invalid.
     \item \textit{test\_correct\_credential()} : A request with a correct credential should be accepted.
     \item \textit{test\_correct\_credential\_no\_attributes()} : A request revealing no attributes should be valid.
@@ -52,9 +52,8 @@ The system is tested with six different tests :
 \end{enumerate}
 The effectiveness of these tests could be assessed using a standard metric such as branch coverage or path coverage. However, these metrics are not complete and will not discover every bug present in the code.
 
-
 \subsection{Evaluation}
-The system is benchmarked in two parts, an offline part, which evaluate pure computationnal time and an online part which evaluate the communication time. The benchmark require the package \textit{pytest-benchmark} to be installed
+The system is benchmarked in two parts, an offline part, which evaluates pure computationnal time and an online part which evaluates the communication time. The benchmark requires the package \textit{pytest-benchmark} to be installed
 
 \subsubsection{Offline benchmark}
 The offline benchmark tests four features :
@@ -151,7 +150,7 @@ To sum up, we assessed how we could breach users privacy by analyzing either gen
 \end{figure}
 
 \subsection{Defences}
-Now that assessed that we assessed the privacy issues of this app, we suggest one simple and lightweight client-side defence that would help improving it.
+Now  that we assessed the privacy issues of this app, we suggest one simple and lightweight client-side defence that would help improving it.
 
 We remember that the purpose of this app is to suggest POIs of a given type in the grid-based vicinity of the user. According to the specifications and \cite{deg}, an actual grid cell is of a similar scale of a city whose side measures a few kilometers. However, the collected location infomartions has artificially ridiculous precision considering that eight decimal places is precise up to a millimeter\cite{relevant_xkcd}. For this, we can suggest generalization by reducing the precision of the queries locations to two decimal degrees. In fact, it is still sufficiently precise to determine in which grid cell the service should do its recommendation in this setup. A cleaner way of implementing this would be by allowing users to download the grid cells locations and dimensions so that when querying the server they would transmit the minimum of information required to keep its utility, i.e. a cell ID.
 
@@ -167,7 +166,7 @@ Making use of this mechanism allowed us to turn the previous anonymity set of pe
 \subsubsection{Data collection}
 The data was collected using the \verb|capture.sh| script. It loops through all the cells, queries the server for it, and dump the traffic between the client and the proxy. The traffic is captured there to avoid parasitic traffic. Each cell was queried 10 times, for a total of 1000 queries.
 
-The file \verb|pcap.py| contains various function, to check the correctness of the capture file, aggregate features and save them in a csv to store them and prepare the data for our classifier. Note that since we used these functions for data collections only, they are not designed to be robust and might crash if the format requirements are not met. 
+The file \verb|pcap.py| contains various function, to check the correctness of the captured files, aggregate features and save them in a csv to store them and prepare the data for our classifier. Note that since we used these functions for data collections only, they are not designed to be robust and might crash if the format requirements are not met. 
 
 The data fed to the classifier consists of the bytes of the packets header converted to an integer between 0 and 255. Each of these values is normalized to be in the $[0,1]$ range. To allows the classifier to extract some structure, we kept only the headers who were 66 bytes long, which was the most frequent. We also kept only the first 400 packets, to have a reasonable training time. All capture smaller than 400 packets are simply padded with 0 bytes. These numbers are totally arbitrary and could be tuned if the available hardware was more powerful.
 
@@ -216,8 +215,6 @@ Inspired by \cite{tor_classification} and \cite{dl_encrypted}, we implemented ou
     \label{model_arch}
 \end{figure}
 The training is done with 50 epochs, the cross-entropy is used as loss function and the \textit{Adam optimizer} as optimizer. As we used 10-fold cross-validation, the training dataset is constituted of 900 samples, the test dataset contains 100 samples.
-
-
 
 \subsection{Evaluation}
 After a 10 fold cross validation, the results are represented in table \ref{test_error}.
