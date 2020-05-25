@@ -5,6 +5,11 @@ import sys
 import os
 import re
 
+"""
+Once we have all the data available, we first need to run pcap.py save to aggregate and save the data in the corresponding csv file
+then we can call the other functions, i.e. to load the folds of data to train the classifier.
+"""
+
 def filter():
     '''
     Output the name of incomplete capture file, i.e those who do not have all PoIs answers. This is checked by counting that the number of HTTP 200 OK is equal to the number of PoIs + 1 for the complete list. 
@@ -43,6 +48,12 @@ def filter():
     print(nb_file)
 
 def aggregate():
+    """
+    Return the loaded, derived and aggregated data from all the pcap files in a dictionary whose keys correspond to the IDs
+    and the values are lists of truncated lists containing the values of the bytes in at most 400 packets which are not part of the 
+    payload
+    """
+
     datas = {}  
 
     for n in range(1,101):
@@ -70,6 +81,10 @@ def aggregate():
     return datas
 
 def save_aggregate():
+    """
+    Save the aggregated data in a packets_lens.csv file whose rows are of the form "ID DATA"
+    """
+
     print("aggregating data...")
     a = aggregate()
 
@@ -86,6 +101,11 @@ def save_aggregate():
     print("saved successfully")
 
 def load_aggregate():
+    """
+    Load the aggregated data saved in the packets_lens.csv file and
+    return x the DATAs and y the corresponding IDs as well as max_l the maximum number of features in x
+    """
+
     x, y = [], []
     max_l = -1
 
@@ -102,6 +122,11 @@ def load_aggregate():
     return x, y, max_l
 
 def indices(y):
+    """
+    Return a list of 10 lists containing the indices of the permutations to create
+    10 folds for the corresponding y long dataset
+    """
+
     np.random.seed(1)
     num_row = len(y)
     interval = int(num_row / 10)
@@ -111,6 +136,11 @@ def indices(y):
 
 
 def load_folds():
+    """
+    Return a 10 folds list of the data loaded with load_aggregate() and indices derives with indices(y)
+    in x_folds for DATA and y_folds for ID, max_l contains the number of features of each value in x
+    """
+
     x, y, max_l = load_aggregate()
     for i in range(len(x)):
         x[i] = x[i]+[0]*(max_l-len(x[i]))
@@ -129,9 +159,7 @@ def load_folds():
 if __name__ == "__main__":
     if sys.argv[1] == "filter":
         filter()
-    elif sys.argv[1] == "aggregate":
-        aggregate()
     elif sys.argv[1] == "save":
         save_aggregate()
     else:
-        print("unrecognized command! Use filter, aggregate or save")
+        print("unrecognized command! Use filter or save")
