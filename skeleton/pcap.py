@@ -50,8 +50,7 @@ def filter():
 def aggregate():
     """
     Return the loaded, derived and aggregated data from all the pcap files in a dictionary whose keys correspond to the IDs
-    and the values are lists of truncated lists containing the values of the bytes in at most 400 packets which are not part of the 
-    payload
+    and the values are lists of truncated lists containing the values of the bytes of at most 400 packets header whose lenght is 66.
     """
 
     datas = {}  
@@ -59,8 +58,8 @@ def aggregate():
     for n in range(1,101):
         datas[str(n)] = []
 
-    for file in os.listdir("complete"):
-        packets = rdpcap("complete/"+file)
+    for file in os.listdir("data"):
+        packets = rdpcap("data/"+file)
         for pkt in packets:
             if pkt[TCP].payload:
                 i = pkt[TCP].load.decode('utf-8').find("cell_id=")
