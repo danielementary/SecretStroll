@@ -152,7 +152,7 @@ To sum up, we assessed how we could breach users privacy by analyzing either gen
 \subsection{Defences}
 Now  that we assessed the privacy issues of this app, we suggest one simple and lightweight client-side defence that would help improving it.
 
-We remember that the purpose of this app is to suggest POIs of a given type in the grid-based vicinity of the user. According to the specifications and \cite{deg}, an actual grid cell is of a similar scale of a city whose side measures a few kilometers. However, the collected location infomartions has artificially ridiculous precision considering that eight decimal places is precise up to a millimeter\cite{relevant_xkcd}. For this, we can suggest generalization by reducing the precision of the queries locations to two decimal degrees. In fact, it is still sufficiently precise to determine in which grid cell the service should do its recommendation in this setup. A cleaner way of implementing this would be by allowing users to download the grid cells locations and dimensions so that when querying the server they would transmit the minimum of information required to keep its utility, i.e. a cell ID.
+We remember that the purpose of this app is to suggest POIs of a given type in the grid-based vicinity of the user. According to the specifications and \cite{deg}, an actual grid cell is of a similar scale of a city whose side measures a few kilometers. However, the collected location infomartions has artificially ridiculous precision considering that eight decimal places is precise up to a millimeter \cite{relevant_xkcd}. For this, we can suggest generalization by reducing the precision of the queries locations to two decimal degrees. In fact, it is still sufficiently precise to determine in which grid cell the service should do its recommendation in this setup. A cleaner way of implementing this would be by allowing users to download the grid cells locations and dimensions so that when querying the server they would transmit the minimum of information required to keep its utility, i.e. a cell ID.
 
 This defense aims to protect the privacy related to the exact location of each query. In our previous attack, we take advantage of being able to map queries locations to the exact corresponding POIs. In this case, we are restricted to the POIs in the actual grid cell whose sizes are crucial and difficult to optimize. For example, if there are only bars in a given grid cell then if a user who would query the service from there would be likely doing it from a bar. Cells should then have k-anonymity, l-diversity and t-closeness to optimize this aspect so that if a user is querying the service from a grid cell, we should not be able to say from which POI nor which kind of POI the user is doing it from. However, this only provides only a probabilistic fine-grained location protection, assuming grid cells have the correct properties, that still may be defeated. A strategic adversary could learn about general habits of users but it would be harder to infer as much detail as we did in our attack, i.e. exact home and work locations as well as wenkend activities or favorite restaurant. For example, it could still observe home and work rides based on grids cells and timestamp but should not be able to say which exact POI inside the given cell it is own.
 
@@ -168,10 +168,10 @@ The data was collected using the \verb|capture.sh| script. It loops through all 
 
 The file \verb|pcap.py| contains various function, to check the correctness of the capture files, aggregate features and save them in a csv to store them and prepare the data for our classifier. Note that since we used these functions for data collections only, they are not designed to be robust and might crash if the format requirements are not met. 
 
-The data fed to the classifier consists of the bytes of the packets header converted to an integer between 0 and 255. Each of these values is normalized to be in the $[0,1]$ range. To allows the classifier to extract some structure, we kept only the headers who were 66 bytes long, which was the most frequent. We also kept only the first 400 packets, to have a reasonable training time. All capture smaller than 400 packets are simply padded with 0 bytes. These numbers are totally arbitrary and could be tuned if the available hardware was more powerful.
+The data fed to the classifier consists of the bytes of the packets header converted to an integer between 0 and 255. Each of these values is normalized to be in the $[0,1]$ range. For the classifier to extract some structure, we keep the 66 bytes long headers, which were the most frequent. We restrict ourselves to the first 400 packets, to stay with a reasonable training time. All captures smaller than 400 packets are padded with 0 bytes. These numbers are arbitrary and could be tuned for more powerful hardware.
 
 \subsubsection{Classification}
-Inspired by \cite{tor_classification} and \cite{dl_encrypted}, we implemented our classifier as a standard convolutionnal neural network. Its architecture is shown in figure \ref{model_arch} and is constituted of the following layers:
+Inspired by \cite{tor_classification} and \cite{dl_encrypted}, we implemented our classifier as a standard convolutionnal neural network. Its architecture is presented in figure \ref{model_arch} with the following layers:
 
 \begin{enumerate}
     \item Convolution
@@ -181,7 +181,7 @@ Inspired by \cite{tor_classification} and \cite{dl_encrypted}, we implemented ou
             \item Kernel size: 66
             \item Stride: 66
         \end{itemize}
-        The parameters of this layer allows the classifier to extract per packet features.
+        The parameters of this layer allow the classifier to extract per packet features.
     \item Max-Pool: 
         \begin{itemize}
          \item Kernel size: 2
@@ -217,7 +217,7 @@ Inspired by \cite{tor_classification} and \cite{dl_encrypted}, we implemented ou
 The training is done with 50 epochs, the cross-entropy is used as loss function and the \textit{Adam optimizer} as optimizer. As we used 10-fold cross-validation, the training dataset is constituted of 900 samples, the test dataset contains 100 samples.
 
 \subsection{Evaluation}
-After a 10 fold cross validation, the results are represented in table \ref{test_error}.
+After a 10 fold cross validation, the results are presented in table \ref{test_error}.
 
 \begin{table}
     \centering
